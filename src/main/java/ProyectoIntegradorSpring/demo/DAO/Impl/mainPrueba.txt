@@ -1,0 +1,24 @@
+package ProyectoIntegradorSpring.demo.DAO.Impl;
+
+import ProyectoIntegradorSpring.demo.DAO.ArticleDAO;
+import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class mainPrueba {
+
+
+
+    public static void main(String[] args) {
+
+        ProductsDAOImpl articleDAO = new ProductsDAOImpl();
+
+        List<ProductDTO> products = articleDAO.chargeDatabase();
+        products.stream().map( e -> ""+e.getName()+" "+e.getPrice()).forEach( System.out::println);
+    }
+
+
+}
