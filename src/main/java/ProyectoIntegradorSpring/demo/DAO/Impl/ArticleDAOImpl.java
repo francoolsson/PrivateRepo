@@ -3,6 +3,7 @@ package ProyectoIntegradorSpring.demo.DAO.Impl;
 
 import ProyectoIntegradorSpring.demo.DAO.ArticleDAO;
 import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
+import ProyectoIntegradorSpring.demo.DTO.ReceiptDTO;
 import ProyectoIntegradorSpring.demo.Model.ModelPredicates;
 import ProyectoIntegradorSpring.demo.Model.ArticleModel;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -17,16 +18,21 @@ import java.util.stream.Collectors;
 @Repository
 public class ArticleDAOImpl implements ArticleDAO {
 
-    private Map<Integer, ArticlesDTO> database;
-    private List<ArticlesDTO> arrayDatabase;
+    private Map<Integer, ArticlesDTO> articlesDatabase;
     private ArrayList<String> attributes;
+    private Map<Integer,ReceiptDTO> receiptDatabase;
 
     public ArticleDAOImpl() {
-        this.database=loadDatabase();
-        this.arrayDatabase=returnArrayDatabase();
+        this.articlesDatabase = loadArticleDatabase();
         this.attributes=getAttributes();
+        this.receiptDatabase=loadReceiptDatabase();
     }
 
+    private Map<Integer,ReceiptDTO> loadReceiptDatabase(){
+        return new HashMap<>();
+    }
+
+    //Me permite obtener una lista con los atributos de ArticleModel
     private ArrayList<String> getAttributes() {
         Field[] fields = ArticleModel.class.getDeclaredFields();
         ArrayList<String> attributes = new ArrayList<>();
@@ -38,7 +44,7 @@ public class ArticleDAOImpl implements ArticleDAO {
         return attributes;
     }
 
-    private Map<Integer, ArticlesDTO> loadDatabase (){
+    private Map<Integer, ArticlesDTO> loadArticleDatabase(){
         HashMap<Integer, ArticlesDTO> database = new HashMap<>();
         ObjectMapper mapper = new ObjectMapper();
         List<ArticleModel> productsList= new ArrayList<>();
@@ -65,13 +71,9 @@ public class ArticleDAOImpl implements ArticleDAO {
         return database;
     }
 
-    private List<ArticlesDTO> returnArrayDatabase(){
-        return new ArrayList<ArticlesDTO>(database.values());
-    }
-
     @Override
     public List<ArticlesDTO> returnAllArticles()  {
-        return arrayDatabase;
+        return articlesDatabase.values().stream().collect( Collectors.toList());
     }
 
 
@@ -84,11 +86,17 @@ public class ArticleDAOImpl implements ArticleDAO {
         return flag;
     }
 
-
     @Override
     public List<ArticlesDTO> returnFilterProducts(Map<String, String> filters) {
 
-        List<ArticlesDTO> filterProducts=arrayDatabase.stream().filter( u -> ModelPredicates.articleFilter(u,filters)).collect( Collectors.toList());
+        List<ArticlesDTO> filterProducts=articlesDatabase.values().stream().filter( u -> ModelPredicates.articleFilter(u,filters)).collect( Collectors.toList());
         return filterProducts;
     }
+
+    @Override
+    public Integer newReceiptID() {
+        return receiptDatabase.size();
+    }
+
+
 }

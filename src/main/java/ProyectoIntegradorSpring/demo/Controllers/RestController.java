@@ -2,10 +2,14 @@ package ProyectoIntegradorSpring.demo.Controllers;
 
 
 import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
+import ProyectoIntegradorSpring.demo.DTO.PurchaseDTO;
+import ProyectoIntegradorSpring.demo.DTO.ResponsePurchaseDTO;
 import ProyectoIntegradorSpring.demo.Services.SearchEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -28,5 +32,11 @@ public class RestController {
            return searchEngine.filterProductsService( filters );
        }
     }
+
+    @PostMapping("/api/v1/purchase-request")
+    public ResponsePurchaseDTO purchaseResponse(@RequestBody PurchaseDTO purchaseDTO) {
+        return searchEngine.responsePurchase(purchaseDTO);
+    }
+
 
 }
