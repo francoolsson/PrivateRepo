@@ -22,6 +22,7 @@ public class SearchEngineImpl implements SearchEngine {
     private List<ArticlesDTO> toOrder;
     private MiFactorySort factorySort=new MiFactorySort();
 
+
     private List<ArticlesDTO> returnArticles(Map<String, String> filters) {
         toOrder= repository.returnFilterProducts(filters);
         Sorter<ArticlesDTO> sort = factorySort.setProperties();
@@ -35,6 +36,7 @@ public class SearchEngineImpl implements SearchEngine {
         }
         return toOrder;
     }
+
 
     @Override
     public List<ArticlesDTO> allProductsService() {
@@ -81,9 +83,10 @@ public class SearchEngineImpl implements SearchEngine {
             if(repository.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
             if(repository.returnFilterProducts(filter).get(0).getQuantity()< items.getQuantity()) throw new BadPurchaseException(
                     "Quantity "+items.getQuantity()+" is greater than stored ("+repository.returnFilterProducts(filter).get(0).getQuantity()+") in ID="+items.getProductId());
-            ArticlesDTO articlesDTO = new ArticlesDTO();
 
+            ArticlesDTO articlesDTO = new ArticlesDTO();
             articlesDTO.setQuantity( items.getQuantity() );
+            repository.returnFilterProducts(filter).get(0).setQuantity(repository.returnFilterProducts(filter).get(0).getQuantity()- items.getQuantity());
             articlesDTO.setName( repository.returnFilterProducts(filter).get(0).getName());
             articlesDTO.setBrand( repository.returnFilterProducts(filter).get(0).getBrand());
             articlesDTO.setId( repository.returnFilterProducts(filter).get(0).getId());
@@ -99,7 +102,7 @@ public class SearchEngineImpl implements SearchEngine {
         receiptDTO.setId( repository.newReceiptID() );
         receiptDTO.setArticles(articlesList);
         receiptDTO.setPrice(articlesList.stream().reduce(0,(price,u)->price+u.getPrice()*u.getQuantity(),Integer::sum));
-        receiptDTO.setStatus("Pending?");
+        receiptDTO.setStatus("Pending");
         receiptDTO.setUser(purchaseDTO.getUserName());
         repository.loadReceiptDatabase(receiptDTO);
         ResponsePurchaseDTO responsePurchaseDTO = new ResponsePurchaseDTO();
@@ -116,12 +119,18 @@ public class SearchEngineImpl implements SearchEngine {
     public ShoppingCartDTO getShoppingCart (String user) {
         List<ReceiptDTO> receipts= repository.getReceipts(user);
         ShoppingCartDTO shoppingCart = new ShoppingCartDTO();
-        if (receipts.isEmpty()) throw new BadFilterException("User "+user+" does not exist");
+        if (receipts.isEmpty()) throw new BadFilterException("User "+user+" has no pending products");
         else {
             shoppingCart.setName(user);
             shoppingCart.setPrice(receipts.stream().reduce( 0,(price,u)->price+u.getPrice(),Integer::sum));
             shoppingCart.setReceipts(receipts);
+            receipts.stream().forEach(u-> u.setStatus("Delivered"));
         }
         return shoppingCart;
+    }
+
+    @Override
+    public List<ReceiptDTO> getReceipts() {
+        return repository.getAllReceipts();
     }
 }

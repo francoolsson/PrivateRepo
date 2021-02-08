@@ -5,7 +5,7 @@ import ProyectoIntegradorSpring.demo.DAO.Repository;
 import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
 import ProyectoIntegradorSpring.demo.DTO.ReceiptDTO;
 import ProyectoIntegradorSpring.demo.DTO.ShoppingCartDTO;
-import ProyectoIntegradorSpring.demo.Model.ModelPredicates;
+import ProyectoIntegradorSpring.demo.Model.ArticlesFilterPredicates;
 import ProyectoIntegradorSpring.demo.Model.ArticleModel;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,11 +23,13 @@ public class RepositoryImpl implements Repository {
     private Map<Integer,ReceiptDTO> receiptDatabase;
 
 
+    //Inicialización de las "Bases de datos" en el constructor
     public RepositoryImpl() {
         this.articlesDatabase = loadArticleDatabase();
         this.attributes=getAttributes();
         this.receiptDatabase=loadReceiptDatabase();
     }
+
 
     private Map<Integer,ReceiptDTO> loadReceiptDatabase(){
         return new HashMap<>();
@@ -36,6 +38,8 @@ public class RepositoryImpl implements Repository {
     private Map<String,ShoppingCartDTO> loadShoppingCartDatabase(){
         return new HashMap<>();
     }
+
+
     //Me permite obtener una lista con los atributos de ArticleModel
     private ArrayList<String> getAttributes() {
         Field[] fields = ArticleModel.class.getDeclaredFields();
@@ -48,6 +52,7 @@ public class RepositoryImpl implements Repository {
         return attributes;
     }
 
+    //Creo la base de datos con los valores del JSON.
     private Map<Integer, ArticlesDTO> loadArticleDatabase(){
         HashMap<Integer, ArticlesDTO> database = new HashMap<>();
         ObjectMapper mapper = new ObjectMapper();
@@ -57,7 +62,7 @@ public class RepositoryImpl implements Repository {
                     new TypeReference<List<ArticleModel>>(){});
         } catch(Exception e){
             e.printStackTrace();
-        };
+        }
         Integer i=0;
         for (ArticleModel articleModel : productsList){
             ArticlesDTO articlesDTO = new ArticlesDTO();
@@ -79,18 +84,18 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public Boolean isAttribute(Map<String, String> filters) {
-        Boolean flag=true;
         for (String str : filters.keySet()){
-            if (!attributes.contains(str)) flag=false;
+            if (!attributes.contains(str)) {
+                return false;
+            }
         }
-        return flag;
+        return true;
     }
 
     @Override
     public List<ArticlesDTO> returnFilterProducts(Map<String, String> filters) {
 
-        List<ArticlesDTO> filterProducts=articlesDatabase.values().stream().filter( u -> ModelPredicates.articleFilter(u,filters)).collect( Collectors.toList());
-        return filterProducts;
+        return articlesDatabase.values().stream().filter( u -> ArticlesFilterPredicates.articleFilter(u,filters)).collect( Collectors.toList());
     }
 
     @Override
@@ -106,6 +111,11 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public List<ReceiptDTO> getReceipts(String user) {
-        return receiptDatabase.values().stream().filter(u->u.getUser().matches(user)).collect( Collectors.toList());
+        return receiptDatabase.values().stream().filter(u->u.getUser().matches(user)).filter(u->u.getStatus().matches("Pending")).collect( Collectors.toList());
+    }
+
+    @Override
+    public List<ReceiptDTO> getAllReceipts() {
+        return receiptDatabase.values().stream().collect( Collectors.toList());
     }
 }

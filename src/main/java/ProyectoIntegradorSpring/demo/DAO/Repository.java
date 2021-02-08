@@ -15,4 +15,5 @@ public interface Repository {
     Integer newReceiptID ();
     void loadReceiptDatabase(ReceiptDTO receiptDTO);
     List<ReceiptDTO> getReceipts(String user);
+    List<ReceiptDTO> getAllReceipts();
 }

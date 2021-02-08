@@ -9,7 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Predicate;
 
-public class ModelPredicates {
+public class ArticlesFilterPredicates {
 
    public static boolean articleFilter(ArticlesDTO articlesDTO, Map<String,String> mapFilter){
 

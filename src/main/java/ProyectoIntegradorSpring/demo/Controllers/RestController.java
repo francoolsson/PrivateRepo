@@ -41,6 +41,9 @@ public class RestController {
        return searchEngine.getShoppingCart( user );
     }
 
-
+    @GetMapping("/api/v1/receipts")
+    public List<ReceiptDTO> getAllReceipt (){
+        return searchEngine.getReceipts();
+    }
 
 }
