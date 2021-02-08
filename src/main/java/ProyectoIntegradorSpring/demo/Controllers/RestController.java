@@ -20,6 +20,8 @@ public class RestController {
     private SearchEngine searchEngine;
     public RestController(@Autowired SearchEngine searchEngine) {this.searchEngine = searchEngine;}
 
+
+    //Controlador para filtros de productos. Trabajo con un map.
     @GetMapping("/api/v1/articles")
     public List<ArticlesDTO> getProducts (@RequestParam Map<String,String> filters){
 
@@ -31,31 +33,37 @@ public class RestController {
        }
     }
 
+    //Controlador para generar una compra.
     @PostMapping("/api/v1/purchase-request")
     public ResponsePurchaseDTO purchaseResponse(@RequestBody PurchaseDTO purchaseDTO) {
         return searchEngine.responsePurchase(purchaseDTO);
     }
 
+    //Controlador para obtener el shoppingCart para un usuario en particular.
     @GetMapping("/api/v1/shopping")
     public ShoppingCartDTO getProducts (@RequestParam String user){
        return searchEngine.getShoppingCart( user );
     }
 
+    //Controlador para obtener todos lso recibos.
     @GetMapping("/api/v1/receipts")
     public List<ReceiptDTO> getAllReceipt (){
         return searchEngine.getReceipts();
     }
 
+    //Controlador para registrar usuario a partir de un UserDTO
     @PostMapping("/api/v1/register-user")
     public StatusDTO registerUser(@RequestBody UserDTO userDTO) {
         return searchEngine.registerUser( userDTO );
     }
 
+    //Controlador para obtener todos los usuarios
     @GetMapping("/api/v1/all-users")
     public List<UserDTO> getAllUsers (){
         return searchEngine.allUsers();
     }
 
+    //Controlador para filtrar usuario a partir de un userDTO obtenido de un get request.
     @GetMapping("/api/v1/users")
     public List<UserDTO> getFilterUsers (UserDTO userDTO){
         return searchEngine.filterUsers(userDTO);

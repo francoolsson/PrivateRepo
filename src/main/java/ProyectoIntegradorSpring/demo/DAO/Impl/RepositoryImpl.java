@@ -49,7 +49,8 @@ public class RepositoryImpl implements Repository {
     private Map<Integer,UserDTO> loadUsersDatabase() {return new HashMap<>();}
     private UserFilterFactory loadFilterFactory() {return new UserFilterFactoryImpl(); }
 
-    //Me permite obtener una lista con los atributos de ArticleModel
+    //Me permite obtener una lista con los atributos de ArticleModel. Uso esta función para contrastar los parámetros
+    //solicitados en un filtro.
     private ArrayList<String> getAttributes() {
         Field[] fields = ArticleModel.class.getDeclaredFields();
         ArrayList<String> attributes = new ArrayList<>();
@@ -92,6 +93,7 @@ public class RepositoryImpl implements Repository {
 
 
     @Override
+    //Función para verificar si algun parámetro del filtro existe como atributo de un artículo.
     public Boolean isAttribute(Map<String, String> filters) {
         for (String str : filters.keySet()){
             if (!attributes.contains(str)) {
@@ -103,52 +105,62 @@ public class RepositoryImpl implements Repository {
 
     @Override
     public List<ArticlesDTO> returnFilterProducts(Map<String, String> filters) {
-
+        //Filtrado de artículos. Armo un filtro de predicados enviandole el mapa de filtros que viene del servicio.
         return articlesDatabase.values().stream().filter( u -> ArticlesFilterPredicates.articleFilter(u,filters)).collect( Collectors.toList());
     }
 
     @Override
+    //Función para obtener el ID para un recibo.
     public Integer newReceiptID() {
         return receiptDatabase.size();
     }
 
     @Override
+    //Carga de un recibo en la base de datos
     public void loadReceiptDatabase(ReceiptDTO receiptDTO) {
         receiptDatabase.put(receiptDTO.getId(),receiptDTO);
     }
 
 
     @Override
+    //Función para obtener los recibos para un usuario en particular y en estado "Pending"
     public List<ReceiptDTO> getReceipts(String user) {
         return receiptDatabase.values().stream().filter(u->u.getUser().matches(user)).filter(u->u.getStatus().matches("Pending")).collect( Collectors.toList());
     }
 
     @Override
+    //Función para devolver todos los recibos.
     public List<ReceiptDTO> getAllReceipts() {
         return receiptDatabase.values().stream().collect( Collectors.toList());
     }
 
     @Override
+    //Función parao obtener el ID para los usuarios.
     public Integer newUserID() {
         return usersDatabase.size();
     }
 
     @Override
+    //Carga de usuario
     public void loadUserDatabase(UserDTO userDTO) {
         usersDatabase.put( userDTO.getId(),userDTO);
     }
 
     @Override
+    //Obtener todos los usuarios
     public List<UserDTO> getAllUsers() {
         return usersDatabase.values().stream().collect( Collectors.toList());
     }
 
     @Override
+    //Verificar si existe un usuario
     public Boolean isUser(String user) {
         return usersDatabase.values().stream().anyMatch( u-> u.getUser().matches( user ) );
     }
 
     @Override
+    //Filtro para un usuario. En este caso genere una "Factoría de filtros" y no trabajo con un mapper desde el controlador,
+    //sino con un userDTO.
     public List<UserDTO> filterUsers(UserDTO userDTO) {
         return usersDatabase.values().stream().filter(userFilterFactory.getUsersFilters( userDTO )).collect( Collectors.toList());
     }

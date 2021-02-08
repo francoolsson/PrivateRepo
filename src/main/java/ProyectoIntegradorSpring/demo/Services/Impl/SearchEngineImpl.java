@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-
+//Search engine tiene todos los servicios. No tuve tiempo de dividir en controladores para que queda mas ordenado
 @Service
 public class SearchEngineImpl implements SearchEngine {
     private Repository repository;
@@ -23,11 +23,16 @@ public class SearchEngineImpl implements SearchEngine {
     private List<ArticlesDTO> toOrder;
     private MiFactorySort factorySort=new MiFactorySort();
 
-
+    //Filtro de productos. Trabaja con un mapa string-string. Cualquier llamada a esta función ya verifico que las keys
+    //del mapa correspondan a atributos válidos.
     private List<ArticlesDTO> returnArticles(Map<String, String> filters) {
         toOrder= repository.returnFilterProducts(filters);
+        //Obtengo el objeto sort de un factory. Puedo setear el mismo en Properties dentro de la carpeta util.
         Sorter<ArticlesDTO> sort = factorySort.setProperties();
+        //Cualquier parte del programa que llame a esta función y no necesite ordenamiento setea order=-1;
         if(order!=-1){
+            //Switcheo order para ver si me pidieron un tipo de ordenamiento. Cualquier llamada a esta función que necesite
+            // un orden setea el order necesario.
             switch (order){
                 case 0: sort.sort(toOrder,new ArticleComparatorNameAsc());
                     break;
@@ -43,12 +48,18 @@ public class SearchEngineImpl implements SearchEngine {
     }
 
 
+    //Función que devuelve todos los productos.
     @Override
     public List<ArticlesDTO> allProductsService() {
         order=-1;
         return returnArticles(new HashMap<>());
     }
 
+
+    //Función que devuelve los productos filtrados. Verifica que los paramétros de filtros solicitados sean correctos.
+    //Además sustituye el caso filter=freeShipping por freeShipping=1, para que pueda ser correctamente interpretado por la
+    //Función de filtro. Además si existe el filtro "order" lo verifica, lo remueve de la lista de filtro y setea Order para
+    //Que lo interprete la función de filtro.
     @Override
     public List<ArticlesDTO> filterProductsService(Map<String, String> filters) {
         order=-1;
@@ -79,11 +90,19 @@ public class SearchEngineImpl implements SearchEngine {
         }
     }
 
+    //Servicio para comprobar una compra y generar el recibo.
     @Override
     public ResponsePurchaseDTO responsePurchase(PurchaseDTO purchaseDTO) {
+
+        //Verifica si existe el usuario, sino lanza una excepción
         if (!repository.isUser( purchaseDTO.getUserName() )) throw new BadRegisterUserException("User "+purchaseDTO.getUserName()+ " does not exist");
         List<ArticlesDTO> articlesList = new ArrayList<>();
+
+        //Recorro todos los items dentro de PurchaseDTO, que es una orden de compra. Verifico que existe el id del producto, que exista la cantidad solicitad y que el descuento
+        //se encuentre entre 0 y 100%. Luego de recorrer de manera correcta todos los items obtengo una lista de articulos correspondientes a los items; y con el descuento aplicado al precio.
         for (ItemsDTO items: purchaseDTO.getArticles()){
+
+            //Para buscar los productos reutilizo mi función de filtros, creando un mapa con ID=id ingresado en el item.
             Map<String,String> filter = new HashMap<>();
             filter.put("id",items.getProductId().toString());
             if(repository.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
@@ -92,6 +111,7 @@ public class SearchEngineImpl implements SearchEngine {
             if(items.getDiscount()>100 || items.getDiscount()<0) throw new BadPurchaseException("Discount "+items.getDiscount()+"in item "+items.getProductId()+" is not valid");
             ArticlesDTO articlesDTO = new ArticlesDTO();
             articlesDTO.setQuantity( items.getQuantity() );
+            //Cuando obtengo el articulo correspondiente me creo un nuevo DTO de articulo para guardarlo en el recibo. Toda esta parte debería cambiarla por un Mapper.
             repository.returnFilterProducts(filter).get(0).setQuantity(repository.returnFilterProducts(filter).get(0).getQuantity()- items.getQuantity());
             articlesDTO.setName( repository.returnFilterProducts(filter).get(0).getName());
             articlesDTO.setBrand( repository.returnFilterProducts(filter).get(0).getBrand());
@@ -104,6 +124,8 @@ public class SearchEngineImpl implements SearchEngine {
             else articlesDTO.setPrice( repository.returnFilterProducts(filter).get(0).getPrice());
             articlesList.add(articlesDTO);
         }
+        //Genero un recibo y seteo los valores correspondientes. Si llegue a este punto la compra se puede realizar sin ningun problema.
+        //Las excepciones lanzadas en el for anterior se manejan con un @ControllerAdvice.
         ReceiptDTO receiptDTO = new ReceiptDTO();
         receiptDTO.setId( repository.newReceiptID() );
         receiptDTO.setArticles(articlesList);
@@ -120,29 +142,35 @@ public class SearchEngineImpl implements SearchEngine {
         return responsePurchaseDTO;
     }
 
-
+    //Genero un carrito de compras con las ordenes PENDIENTES para un usuario. Cuando se genera las ordenes de compra
+    //los recibos almacenados como pendientes pasan a entregados. Debería ampliar una funcionalidad para que pueda
+    //ver el carrito y otra para entregar el carrito.
     @Override
     public ShoppingCartDTO getShoppingCart (String user) {
+        //Verifico si existe el usuario.
         if (!repository.isUser( user )) throw new BadRegisterUserException("User "+user+ " does not exist");
+        //Obtengo todos los recibos para un user que estan en estado pendiente.
         List<ReceiptDTO> receipts= repository.getReceipts(user);
-        ShoppingCartDTO shoppingCart = new ShoppingCartDTO();
+        //Si la lista de recibos está vacía tiro una excepción
         if (receipts.isEmpty()) throw new BadRegisterUserException("User "+user+" has no pending products");
-        else {
-            shoppingCart.setName(user);
-            shoppingCart.setPrice(receipts.stream().reduce( 0,(price,u)->price+u.getPrice(),Integer::sum));
-            shoppingCart.setReceipts(receipts);
-            receipts.stream().forEach(u-> u.setStatus("Delivered"));
-        }
+        //Genero el carrito y lo entrego. Aca ya modifico los recibos a Entregados. Debería generar mas funcionalidades para el carrito.
+        ShoppingCartDTO shoppingCart = new ShoppingCartDTO();
+        shoppingCart.setName(user);
+        shoppingCart.setPrice(receipts.stream().reduce( 0,(price,u)->price+u.getPrice(),Integer::sum));
+        shoppingCart.setReceipts(receipts);
+        receipts.stream().forEach(u-> u.setStatus("Delivered"));
         return shoppingCart;
     }
 
     @Override
+    //Obtengo todos los recibos
     public List<ReceiptDTO> getReceipts() {
         return repository.getAllReceipts();
     }
 
 
     @Override
+    //Registro de usuarios. Ante cualquier anormalidad en la carga lanza excepción. Le faltan verificaciones.
     public StatusDTO registerUser(UserDTO userDTO) {
         if (userDTO.getUser()==null) throw new BadRegisterUserException("Required field User");
         if (userDTO.getName()==null) throw new BadRegisterUserException("Required field Name");
@@ -158,12 +186,14 @@ public class SearchEngineImpl implements SearchEngine {
     }
 
     @Override
+    //Obtengo todos los usuarios.
     public List<UserDTO> allUsers() {
         return repository.getAllUsers();
     }
 
 
     @Override
+    //Obtengo los usuarios filtrados. En este caso arme el filtro con un request GET de formato userDTO y no con un get de formato map (como en la parte de filtrado de artículos).
     public List<UserDTO> filterUsers(UserDTO userDTO) {
         if (repository.filterUsers( userDTO ).isEmpty()) throw new BadFilterException("There is no user that matches the filters");
         return repository.filterUsers( userDTO );

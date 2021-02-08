@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+
+//Control de excepciones. Genere diferentes exepciones para ir probando cosas. Lo ideal seria que todas las respuestas
+//(menos la de un purchase) sean de formato StatusDTO.
 @ControllerAdvice
 public class ExceptionController {
 
