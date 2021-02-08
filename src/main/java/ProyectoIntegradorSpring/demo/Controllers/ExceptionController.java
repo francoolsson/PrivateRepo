@@ -4,10 +4,7 @@ package ProyectoIntegradorSpring.demo.Controllers;
 import ProyectoIntegradorSpring.demo.DTO.ErrorDTO;
 import ProyectoIntegradorSpring.demo.DTO.ResponsePurchaseDTO;
 import ProyectoIntegradorSpring.demo.DTO.StatusDTO;
-import ProyectoIntegradorSpring.demo.Exceptions.BadFilterException;
-import ProyectoIntegradorSpring.demo.Exceptions.BadPurchaseException;
-import ProyectoIntegradorSpring.demo.Exceptions.BadSortPropertiesException;
-import ProyectoIntegradorSpring.demo.Exceptions.BadURLException;
+import ProyectoIntegradorSpring.demo.Exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -45,6 +42,14 @@ public class ExceptionController {
         statusDTO.setMessage(badPurchaseException.getMessage());
         responsePurchaseDTO.setStatusCode(statusDTO);
         return new ResponseEntity<>(responsePurchaseDTO, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BadRegisterUserException.class)
+    public ResponseEntity<StatusDTO> handleException(BadRegisterUserException badRegisterUserException) {
+        StatusDTO statusDTO = new StatusDTO();
+        statusDTO.setMessage( badRegisterUserException.getMessage() );
+        statusDTO.setCode( 400 );
+        return new ResponseEntity<>( statusDTO, HttpStatus.BAD_REQUEST);
     }
 }
 

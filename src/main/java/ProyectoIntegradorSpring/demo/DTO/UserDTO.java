@@ -7,6 +7,15 @@ public class UserDTO {
     private String city;
     private String state;
     private String mail;
+    private Integer id;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;

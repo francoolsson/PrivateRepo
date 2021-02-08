@@ -17,7 +17,7 @@ public class ArticlesFilterPredicates {
        Predicate<ArticlesDTO> init = (ArticlesDTO p) -> true;
        predicates.add(init);
        if(mapFilter.containsKey("category")) {
-           Predicate<ArticlesDTO> p1 = (ArticlesDTO p) -> p.getName().toLowerCase().contains( mapFilter.get( "category" ).toLowerCase( Locale.ROOT ) );
+           Predicate<ArticlesDTO> p1 = (ArticlesDTO p) -> p.getCategory().toLowerCase().contains( mapFilter.get( "category" ).toLowerCase( Locale.ROOT ) );
            predicates.add(p1);
        }
        if(mapFilter.containsKey("brand")){
@@ -43,7 +43,7 @@ public class ArticlesFilterPredicates {
            else throw new BadFilterException("Quantity is not a number");
        }
        if(mapFilter.containsKey("freeShipping")){
-           if (mapFilter.get("freeShipping").matches("^\\d+$")) {
+           if (mapFilter.get("freeShipping").matches("^[0,1]$")) {
                Predicate<ArticlesDTO> p1 = (ArticlesDTO p) -> p.getFreeShipping() == (Integer.parseInt( mapFilter.get( "freeShipping" ) ));
                predicates.add( p1 );
            }

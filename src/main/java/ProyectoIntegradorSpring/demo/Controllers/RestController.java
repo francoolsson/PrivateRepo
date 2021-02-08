@@ -46,4 +46,19 @@ public class RestController {
         return searchEngine.getReceipts();
     }
 
+    @PostMapping("/api/v1/register-user")
+    public StatusDTO registerUser(@RequestBody UserDTO userDTO) {
+        return searchEngine.registerUser( userDTO );
+    }
+
+    @GetMapping("/api/v1/all-users")
+    public List<UserDTO> getAllUsers (){
+        return searchEngine.allUsers();
+    }
+
+    @GetMapping("/api/v1/users")
+    public List<UserDTO> getFilterUsers (UserDTO userDTO){
+        return searchEngine.filterUsers(userDTO);
+    }
+
 }

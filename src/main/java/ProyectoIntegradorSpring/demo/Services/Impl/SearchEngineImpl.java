@@ -4,6 +4,7 @@ import ProyectoIntegradorSpring.demo.DAO.Repository;
 import ProyectoIntegradorSpring.demo.DTO.*;
 import ProyectoIntegradorSpring.demo.Exceptions.BadFilterException;
 import ProyectoIntegradorSpring.demo.Exceptions.BadPurchaseException;
+import ProyectoIntegradorSpring.demo.Exceptions.BadRegisterUserException;
 import ProyectoIntegradorSpring.demo.Services.SearchEngine;
 import ProyectoIntegradorSpring.demo.Util.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +30,13 @@ public class SearchEngineImpl implements SearchEngine {
         if(order!=-1){
             switch (order){
                 case 0: sort.sort(toOrder,new ArticleComparatorNameAsc());
+                    break;
                 case 1: sort.sort(toOrder,new ArticleComparatorNameDes());
+                    break;
                 case 2: sort.sort(toOrder,new ArticleComparatorPriceAsc());
+                    break;
                 case 3: sort.sort(toOrder,new ArticleComparatorPriceDes());
+                    break;
             }
         }
         return toOrder;
@@ -76,6 +81,7 @@ public class SearchEngineImpl implements SearchEngine {
 
     @Override
     public ResponsePurchaseDTO responsePurchase(PurchaseDTO purchaseDTO) {
+        if (!repository.isUser( purchaseDTO.getUserName() )) throw new BadRegisterUserException("User "+purchaseDTO.getUserName()+ " does not exist");
         List<ArticlesDTO> articlesList = new ArrayList<>();
         for (ItemsDTO items: purchaseDTO.getArticles()){
             Map<String,String> filter = new HashMap<>();
@@ -83,7 +89,7 @@ public class SearchEngineImpl implements SearchEngine {
             if(repository.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
             if(repository.returnFilterProducts(filter).get(0).getQuantity()< items.getQuantity()) throw new BadPurchaseException(
                     "Quantity "+items.getQuantity()+" is greater than stored ("+repository.returnFilterProducts(filter).get(0).getQuantity()+") in ID="+items.getProductId());
-
+            if(items.getDiscount()>100 || items.getDiscount()<0) throw new BadPurchaseException("Discount "+items.getDiscount()+"in item "+items.getProductId()+" is not valid");
             ArticlesDTO articlesDTO = new ArticlesDTO();
             articlesDTO.setQuantity( items.getQuantity() );
             repository.returnFilterProducts(filter).get(0).setQuantity(repository.returnFilterProducts(filter).get(0).getQuantity()- items.getQuantity());
@@ -117,9 +123,10 @@ public class SearchEngineImpl implements SearchEngine {
 
     @Override
     public ShoppingCartDTO getShoppingCart (String user) {
+        if (!repository.isUser( user )) throw new BadRegisterUserException("User "+user+ " does not exist");
         List<ReceiptDTO> receipts= repository.getReceipts(user);
         ShoppingCartDTO shoppingCart = new ShoppingCartDTO();
-        if (receipts.isEmpty()) throw new BadFilterException("User "+user+" has no pending products");
+        if (receipts.isEmpty()) throw new BadRegisterUserException("User "+user+" has no pending products");
         else {
             shoppingCart.setName(user);
             shoppingCart.setPrice(receipts.stream().reduce( 0,(price,u)->price+u.getPrice(),Integer::sum));
@@ -132,5 +139,33 @@ public class SearchEngineImpl implements SearchEngine {
     @Override
     public List<ReceiptDTO> getReceipts() {
         return repository.getAllReceipts();
+    }
+
+
+    @Override
+    public StatusDTO registerUser(UserDTO userDTO) {
+        if (userDTO.getUser()==null) throw new BadRegisterUserException("Required field User");
+        if (userDTO.getName()==null) throw new BadRegisterUserException("Required field Name");
+        if (repository.isUser( userDTO.getUser() )) throw new BadRegisterUserException("User "+userDTO.getUser()+ " already exists");
+        if (userDTO.getState()==null) throw new BadRegisterUserException("Required field State");
+        userDTO.setId( repository.newUserID() );
+        repository.loadUserDatabase( userDTO );
+        StatusDTO statusDTO = new StatusDTO();
+        statusDTO.setCode(200);
+        statusDTO.setMessage("User "+userDTO.getUser()+" (name "+userDTO.getName()+") has been loaded successfully with id "+userDTO.getId());
+        return statusDTO;
+
+    }
+
+    @Override
+    public List<UserDTO> allUsers() {
+        return repository.getAllUsers();
+    }
+
+
+    @Override
+    public List<UserDTO> filterUsers(UserDTO userDTO) {
+        if (repository.filterUsers( userDTO ).isEmpty()) throw new BadFilterException("There is no user that matches the filters");
+        return repository.filterUsers( userDTO );
     }
 }
