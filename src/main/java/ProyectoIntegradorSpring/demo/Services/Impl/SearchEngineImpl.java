@@ -1,6 +1,6 @@
 package ProyectoIntegradorSpring.demo.Services.Impl;
 
-import ProyectoIntegradorSpring.demo.DAO.ArticleDAO;
+import ProyectoIntegradorSpring.demo.DAO.Repository;
 import ProyectoIntegradorSpring.demo.DTO.*;
 import ProyectoIntegradorSpring.demo.Exceptions.BadFilterException;
 import ProyectoIntegradorSpring.demo.Exceptions.BadPurchaseException;
@@ -14,16 +14,16 @@ import java.util.*;
 
 @Service
 public class SearchEngineImpl implements SearchEngine {
-    private ArticleDAO articleDAO;
+    private Repository repository;
 
-    SearchEngineImpl(@Autowired ArticleDAO articleDAO) {this.articleDAO = articleDAO; }
+    SearchEngineImpl(@Autowired Repository repository) {this.repository = repository; }
 
     private Integer order;
     private List<ArticlesDTO> toOrder;
     private MiFactorySort factorySort=new MiFactorySort();
 
     private List<ArticlesDTO> returnArticles(Map<String, String> filters) {
-        toOrder= articleDAO.returnFilterProducts(filters);
+        toOrder= repository.returnFilterProducts(filters);
         Sorter<ArticlesDTO> sort = factorySort.setProperties();
         if(order!=-1){
             switch (order){
@@ -62,10 +62,10 @@ public class SearchEngineImpl implements SearchEngine {
             else throw new BadFilterException("Order Filter Error");
         }
         //Verifico si todos los atributos para filtrar son correctos
-        if(!articleDAO.isAttribute(filters)) throw new BadFilterException("Attributes Filters Error");
+        if(!repository.isAttribute(filters)) throw new BadFilterException("Attributes Filters Error");
         else{
             //Verifico si hay respuestas para la combinación de filtros
-            if(articleDAO.returnFilterProducts(filters).isEmpty()) throw new BadFilterException("Article Not Found");
+            if(repository.returnFilterProducts(filters).isEmpty()) throw new BadFilterException("Article Not Found");
             else {
                 return returnArticles(filters);
             }
@@ -78,28 +78,30 @@ public class SearchEngineImpl implements SearchEngine {
         for (ItemsDTO items: purchaseDTO.getArticles()){
             Map<String,String> filter = new HashMap<>();
             filter.put("id",items.getProductId().toString());
-            if(articleDAO.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
-            if(articleDAO.returnFilterProducts(filter).get(0).getQuantity()< items.getQuantity()) throw new BadPurchaseException(
-                    "Quantity "+items.getQuantity()+" is greater than stored ("+articleDAO.returnFilterProducts(filter).get(0).getQuantity()+") in ID="+items.getProductId());
+            if(repository.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
+            if(repository.returnFilterProducts(filter).get(0).getQuantity()< items.getQuantity()) throw new BadPurchaseException(
+                    "Quantity "+items.getQuantity()+" is greater than stored ("+repository.returnFilterProducts(filter).get(0).getQuantity()+") in ID="+items.getProductId());
             ArticlesDTO articlesDTO = new ArticlesDTO();
 
             articlesDTO.setQuantity( items.getQuantity() );
-            articlesDTO.setName( articleDAO.returnFilterProducts(filter).get(0).getName());
-            articlesDTO.setBrand( articleDAO.returnFilterProducts(filter).get(0).getBrand());
-            articlesDTO.setId( articleDAO.returnFilterProducts(filter).get(0).getId());
-            articlesDTO.setCategory( articleDAO.returnFilterProducts(filter).get(0).getCategory());
-            articlesDTO.setFreeShipping( articleDAO.returnFilterProducts(filter).get(0).getFreeShipping());
-            articlesDTO.setPrestige( articleDAO.returnFilterProducts(filter).get(0).getPrestige());
-            articlesDTO.setPrice( articleDAO.returnFilterProducts(filter).get(0).getPrice());
+            articlesDTO.setName( repository.returnFilterProducts(filter).get(0).getName());
+            articlesDTO.setBrand( repository.returnFilterProducts(filter).get(0).getBrand());
+            articlesDTO.setId( repository.returnFilterProducts(filter).get(0).getId());
+            articlesDTO.setCategory( repository.returnFilterProducts(filter).get(0).getCategory());
+            articlesDTO.setFreeShipping( repository.returnFilterProducts(filter).get(0).getFreeShipping());
+            articlesDTO.setPrestige( repository.returnFilterProducts(filter).get(0).getPrestige());
+            articlesDTO.setPrice( repository.returnFilterProducts(filter).get(0).getPrice());
             if (items.getDiscount() != null) articlesDTO.setPrice(articlesDTO.getPrice()-articlesDTO.getPrice()* items.getDiscount()/100);
-            else articlesDTO.setPrice( articleDAO.returnFilterProducts(filter).get(0).getPrice());
+            else articlesDTO.setPrice( repository.returnFilterProducts(filter).get(0).getPrice());
             articlesList.add(articlesDTO);
         }
         ReceiptDTO receiptDTO = new ReceiptDTO();
-        receiptDTO.setId( articleDAO.newReceiptID() );
+        receiptDTO.setId( repository.newReceiptID() );
         receiptDTO.setArticles(articlesList);
         receiptDTO.setPrice(articlesList.stream().reduce(0,(price,u)->price+u.getPrice()*u.getQuantity(),Integer::sum));
         receiptDTO.setStatus("Pending?");
+        receiptDTO.setUser(purchaseDTO.getUserName());
+        repository.loadReceiptDatabase(receiptDTO);
         ResponsePurchaseDTO responsePurchaseDTO = new ResponsePurchaseDTO();
         responsePurchaseDTO.setReceipt(receiptDTO);
         StatusDTO statusDTO= new StatusDTO();
@@ -107,5 +109,19 @@ public class SearchEngineImpl implements SearchEngine {
         statusDTO.setMessage("Generated receipt");
         responsePurchaseDTO.setStatusCode(statusDTO);
         return responsePurchaseDTO;
+    }
+
+
+    @Override
+    public ShoppingCartDTO getShoppingCart (String user) {
+        List<ReceiptDTO> receipts= repository.getReceipts(user);
+        ShoppingCartDTO shoppingCart = new ShoppingCartDTO();
+        if (receipts.isEmpty()) throw new BadFilterException("User "+user+" does not exist");
+        else {
+            shoppingCart.setName(user);
+            shoppingCart.setPrice(receipts.stream().reduce( 0,(price,u)->price+u.getPrice(),Integer::sum));
+            shoppingCart.setReceipts(receipts);
+        }
+        return shoppingCart;
     }
 }

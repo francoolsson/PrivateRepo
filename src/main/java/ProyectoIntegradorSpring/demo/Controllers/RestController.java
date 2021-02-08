@@ -1,9 +1,7 @@
 package ProyectoIntegradorSpring.demo.Controllers;
 
 
-import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
-import ProyectoIntegradorSpring.demo.DTO.PurchaseDTO;
-import ProyectoIntegradorSpring.demo.DTO.ResponsePurchaseDTO;
+import ProyectoIntegradorSpring.demo.DTO.*;
 import ProyectoIntegradorSpring.demo.Services.SearchEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +35,12 @@ public class RestController {
     public ResponsePurchaseDTO purchaseResponse(@RequestBody PurchaseDTO purchaseDTO) {
         return searchEngine.responsePurchase(purchaseDTO);
     }
+
+    @GetMapping("/api/v1/shopping")
+    public ShoppingCartDTO getProducts (@RequestParam String user){
+       return searchEngine.getShoppingCart( user );
+    }
+
 
 
 }

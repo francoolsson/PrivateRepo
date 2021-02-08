@@ -5,6 +5,7 @@ import java.util.List;
 public class ReceiptDTO{
 
     private Integer id;
+    private String user;
     private String status;
     private Integer price;
     private List<ArticlesDTO> articles;
@@ -39,5 +40,13 @@ public class ReceiptDTO{
 
     public void setArticles(List<ArticlesDTO> articles) {
         this.articles = articles;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
     }
 }

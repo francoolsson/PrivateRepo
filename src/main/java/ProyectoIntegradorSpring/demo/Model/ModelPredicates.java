@@ -54,7 +54,7 @@ public class ModelPredicates {
                Predicate<ArticlesDTO> p1 = (ArticlesDTO p) -> p.getId() == (Integer.parseInt( mapFilter.get( "id" ) ));
                predicates.add( p1 );
            }
-           else throw new BadFilterException("Bad Free Shipping request");
+           else throw new BadFilterException("Bad ID request");
        }
 
        //Todos los filtros

@@ -1,28 +1,29 @@
 package ProyectoIntegradorSpring.demo.DAO.Impl;
 
 
-import ProyectoIntegradorSpring.demo.DAO.ArticleDAO;
+import ProyectoIntegradorSpring.demo.DAO.Repository;
 import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
 import ProyectoIntegradorSpring.demo.DTO.ReceiptDTO;
+import ProyectoIntegradorSpring.demo.DTO.ShoppingCartDTO;
 import ProyectoIntegradorSpring.demo.Model.ModelPredicates;
 import ProyectoIntegradorSpring.demo.Model.ArticleModel;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Repository;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Repository
-public class ArticleDAOImpl implements ArticleDAO {
+@org.springframework.stereotype.Repository
+public class RepositoryImpl implements Repository {
 
     private Map<Integer, ArticlesDTO> articlesDatabase;
     private ArrayList<String> attributes;
     private Map<Integer,ReceiptDTO> receiptDatabase;
 
-    public ArticleDAOImpl() {
+
+    public RepositoryImpl() {
         this.articlesDatabase = loadArticleDatabase();
         this.attributes=getAttributes();
         this.receiptDatabase=loadReceiptDatabase();
@@ -32,6 +33,9 @@ public class ArticleDAOImpl implements ArticleDAO {
         return new HashMap<>();
     }
 
+    private Map<String,ShoppingCartDTO> loadShoppingCartDatabase(){
+        return new HashMap<>();
+    }
     //Me permite obtener una lista con los atributos de ArticleModel
     private ArrayList<String> getAttributes() {
         Field[] fields = ArticleModel.class.getDeclaredFields();
@@ -71,10 +75,6 @@ public class ArticleDAOImpl implements ArticleDAO {
         return database;
     }
 
-    @Override
-    public List<ArticlesDTO> returnAllArticles()  {
-        return articlesDatabase.values().stream().collect( Collectors.toList());
-    }
 
 
     @Override
@@ -98,5 +98,14 @@ public class ArticleDAOImpl implements ArticleDAO {
         return receiptDatabase.size();
     }
 
+    @Override
+    public void loadReceiptDatabase(ReceiptDTO receiptDTO) {
+        receiptDatabase.put(receiptDTO.getId(),receiptDTO);
+    }
 
+
+    @Override
+    public List<ReceiptDTO> getReceipts(String user) {
+        return receiptDatabase.values().stream().filter(u->u.getUser().matches(user)).collect( Collectors.toList());
+    }
 }
