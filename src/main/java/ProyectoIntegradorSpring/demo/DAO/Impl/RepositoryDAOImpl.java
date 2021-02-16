@@ -1,7 +1,7 @@
 package ProyectoIntegradorSpring.demo.DAO.Impl;
 
 
-import ProyectoIntegradorSpring.demo.DAO.Repository;
+import ProyectoIntegradorSpring.demo.DAO.RepositoryDAO;
 import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
 import ProyectoIntegradorSpring.demo.DTO.ReceiptDTO;
 import ProyectoIntegradorSpring.demo.DTO.ShoppingCartDTO;
@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Repository
-public class RepositoryImpl implements Repository {
+public class RepositoryDAOImpl implements RepositoryDAO {
 
     private final Map<Integer, ArticlesDTO> articlesDatabase;
     private final ArrayList<String> attributes;
@@ -30,7 +30,7 @@ public class RepositoryImpl implements Repository {
 
 
     //Inicialización de las "Bases de datos" en el constructor
-    public RepositoryImpl() {
+    public RepositoryDAOImpl() {
         this.articlesDatabase = loadArticleDatabase();
         this.attributes=getAttributes();
         this.receiptDatabase=loadReceiptDatabase();

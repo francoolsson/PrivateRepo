@@ -1,6 +1,6 @@
 package ProyectoIntegradorSpring.demo.Services.Impl;
 
-import ProyectoIntegradorSpring.demo.DAO.Repository;
+import ProyectoIntegradorSpring.demo.DAO.RepositoryDAO;
 import ProyectoIntegradorSpring.demo.DTO.*;
 import ProyectoIntegradorSpring.demo.Exceptions.BadFilterException;
 import ProyectoIntegradorSpring.demo.Exceptions.BadPurchaseException;
@@ -15,10 +15,10 @@ import java.util.*;
 //Search engine tiene todos los servicios. No tuve tiempo de dividir en controladores para que queda mas ordenado
 @Service
 public class SearchEngineImpl implements SearchEngine {
-    private Repository repository;
 
-    SearchEngineImpl(@Autowired Repository repository) {this.repository = repository; }
+    public SearchEngineImpl(@Autowired RepositoryDAO repositoryDAO) {this.repositoryDAO = repositoryDAO; }
 
+    private RepositoryDAO repositoryDAO;
     private Integer order;
     private List<ArticlesDTO> toOrder;
     private MiFactorySort factorySort=new MiFactorySort();
@@ -26,7 +26,7 @@ public class SearchEngineImpl implements SearchEngine {
     //Filtro de productos. Trabaja con un mapa string-string. Cualquier llamada a esta función ya verifico que las keys
     //del mapa correspondan a atributos válidos.
     private List<ArticlesDTO> returnArticles(Map<String, String> filters) {
-        toOrder= repository.returnFilterProducts(filters);
+        toOrder= repositoryDAO.returnFilterProducts(filters);
         //Obtengo el objeto sort de un factory. Puedo setear el mismo en Properties dentro de la carpeta util.
         Sorter<ArticlesDTO> sort = factorySort.setProperties();
         //Cualquier parte del programa que llame a esta función y no necesite ordenamiento setea order=-1;
@@ -80,10 +80,10 @@ public class SearchEngineImpl implements SearchEngine {
             else throw new BadFilterException("Order Filter Error");
         }
         //Verifico si todos los atributos para filtrar son correctos
-        if(!repository.isAttribute(filters)) throw new BadFilterException("Attributes Filters Error");
+        if(!repositoryDAO.isAttribute(filters)) throw new BadFilterException("Attributes Filters Error");
         else{
             //Verifico si hay respuestas para la combinación de filtros
-            if(repository.returnFilterProducts(filters).isEmpty()) throw new BadFilterException("Article Not Found");
+            if(repositoryDAO.returnFilterProducts(filters).isEmpty()) throw new BadFilterException("Article Not Found");
             else {
                 return returnArticles(filters);
             }
@@ -95,7 +95,7 @@ public class SearchEngineImpl implements SearchEngine {
     public ResponsePurchaseDTO responsePurchase(PurchaseDTO purchaseDTO) {
 
         //Verifica si existe el usuario, sino lanza una excepción
-        if (!repository.isUser( purchaseDTO.getUserName() )) throw new BadRegisterUserException("User "+purchaseDTO.getUserName()+ " does not exist");
+        if (!repositoryDAO.isUser( purchaseDTO.getUserName() )) throw new BadRegisterUserException("User "+purchaseDTO.getUserName()+ " does not exist");
         List<ArticlesDTO> articlesList = new ArrayList<>();
 
         //Recorro todos los items dentro de PurchaseDTO, que es una orden de compra. Verifico que existe el id del producto, que exista la cantidad solicitad y que el descuento
@@ -105,34 +105,34 @@ public class SearchEngineImpl implements SearchEngine {
             //Para buscar los productos reutilizo mi función de filtros, creando un mapa con ID=id ingresado en el item.
             Map<String,String> filter = new HashMap<>();
             filter.put("id",items.getProductId().toString());
-            if(repository.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
-            if(repository.returnFilterProducts(filter).get(0).getQuantity()< items.getQuantity()) throw new BadPurchaseException(
-                    "Quantity "+items.getQuantity()+" is greater than stored ("+repository.returnFilterProducts(filter).get(0).getQuantity()+") in ID="+items.getProductId());
+            if(repositoryDAO.returnFilterProducts(filter).isEmpty()) throw new BadPurchaseException("ID="+items.getProductId()+" is not found");
+            if(repositoryDAO.returnFilterProducts(filter).get(0).getQuantity()< items.getQuantity()) throw new BadPurchaseException(
+                    "Quantity "+items.getQuantity()+" is greater than stored ("+ repositoryDAO.returnFilterProducts(filter).get(0).getQuantity()+") in ID="+items.getProductId());
             if(items.getDiscount()>100 || items.getDiscount()<0) throw new BadPurchaseException("Discount "+items.getDiscount()+"in item "+items.getProductId()+" is not valid");
             ArticlesDTO articlesDTO = new ArticlesDTO();
             articlesDTO.setQuantity( items.getQuantity() );
             //Cuando obtengo el articulo correspondiente me creo un nuevo DTO de articulo para guardarlo en el recibo. Toda esta parte debería cambiarla por un Mapper.
-            repository.returnFilterProducts(filter).get(0).setQuantity(repository.returnFilterProducts(filter).get(0).getQuantity()- items.getQuantity());
-            articlesDTO.setName( repository.returnFilterProducts(filter).get(0).getName());
-            articlesDTO.setBrand( repository.returnFilterProducts(filter).get(0).getBrand());
-            articlesDTO.setId( repository.returnFilterProducts(filter).get(0).getId());
-            articlesDTO.setCategory( repository.returnFilterProducts(filter).get(0).getCategory());
-            articlesDTO.setFreeShipping( repository.returnFilterProducts(filter).get(0).getFreeShipping());
-            articlesDTO.setPrestige( repository.returnFilterProducts(filter).get(0).getPrestige());
-            articlesDTO.setPrice( repository.returnFilterProducts(filter).get(0).getPrice());
+            repositoryDAO.returnFilterProducts(filter).get(0).setQuantity( repositoryDAO.returnFilterProducts(filter).get(0).getQuantity()- items.getQuantity());
+            articlesDTO.setName( repositoryDAO.returnFilterProducts(filter).get(0).getName());
+            articlesDTO.setBrand( repositoryDAO.returnFilterProducts(filter).get(0).getBrand());
+            articlesDTO.setId( repositoryDAO.returnFilterProducts(filter).get(0).getId());
+            articlesDTO.setCategory( repositoryDAO.returnFilterProducts(filter).get(0).getCategory());
+            articlesDTO.setFreeShipping( repositoryDAO.returnFilterProducts(filter).get(0).getFreeShipping());
+            articlesDTO.setPrestige( repositoryDAO.returnFilterProducts(filter).get(0).getPrestige());
+            articlesDTO.setPrice( repositoryDAO.returnFilterProducts(filter).get(0).getPrice());
             if (items.getDiscount() != null) articlesDTO.setPrice(articlesDTO.getPrice()-articlesDTO.getPrice()* items.getDiscount()/100);
-            else articlesDTO.setPrice( repository.returnFilterProducts(filter).get(0).getPrice());
+            else articlesDTO.setPrice( repositoryDAO.returnFilterProducts(filter).get(0).getPrice());
             articlesList.add(articlesDTO);
         }
         //Genero un recibo y seteo los valores correspondientes. Si llegue a este punto la compra se puede realizar sin ningun problema.
         //Las excepciones lanzadas en el for anterior se manejan con un @ControllerAdvice.
         ReceiptDTO receiptDTO = new ReceiptDTO();
-        receiptDTO.setId( repository.newReceiptID() );
+        receiptDTO.setId( repositoryDAO.newReceiptID() );
         receiptDTO.setArticles(articlesList);
         receiptDTO.setPrice(articlesList.stream().reduce(0,(price,u)->price+u.getPrice()*u.getQuantity(),Integer::sum));
         receiptDTO.setStatus("Pending");
         receiptDTO.setUser(purchaseDTO.getUserName());
-        repository.loadReceiptDatabase(receiptDTO);
+        repositoryDAO.loadReceiptDatabase(receiptDTO);
         ResponsePurchaseDTO responsePurchaseDTO = new ResponsePurchaseDTO();
         responsePurchaseDTO.setReceipt(receiptDTO);
         StatusDTO statusDTO= new StatusDTO();
@@ -148,9 +148,9 @@ public class SearchEngineImpl implements SearchEngine {
     @Override
     public ShoppingCartDTO getShoppingCart (String user) {
         //Verifico si existe el usuario.
-        if (!repository.isUser( user )) throw new BadRegisterUserException("User "+user+ " does not exist");
+        if (!repositoryDAO.isUser( user )) throw new BadRegisterUserException("User "+user+ " does not exist");
         //Obtengo todos los recibos para un user que estan en estado pendiente.
-        List<ReceiptDTO> receipts= repository.getReceipts(user);
+        List<ReceiptDTO> receipts= repositoryDAO.getReceipts(user);
         //Si la lista de recibos está vacía tiro una excepción
         if (receipts.isEmpty()) throw new BadRegisterUserException("User "+user+" has no pending products");
         //Genero el carrito y lo entrego. Aca ya modifico los recibos a Entregados. Debería generar mas funcionalidades para el carrito.
@@ -165,7 +165,7 @@ public class SearchEngineImpl implements SearchEngine {
     @Override
     //Obtengo todos los recibos
     public List<ReceiptDTO> getReceipts() {
-        return repository.getAllReceipts();
+        return repositoryDAO.getAllReceipts();
     }
 
 
@@ -174,10 +174,10 @@ public class SearchEngineImpl implements SearchEngine {
     public StatusDTO registerUser(UserDTO userDTO) {
         if (userDTO.getUser()==null) throw new BadRegisterUserException("Required field User");
         if (userDTO.getName()==null) throw new BadRegisterUserException("Required field Name");
-        if (repository.isUser( userDTO.getUser() )) throw new BadRegisterUserException("User "+userDTO.getUser()+ " already exists");
+        if (repositoryDAO.isUser( userDTO.getUser() )) throw new BadRegisterUserException("User "+userDTO.getUser()+ " already exists");
         if (userDTO.getState()==null) throw new BadRegisterUserException("Required field State");
-        userDTO.setId( repository.newUserID() );
-        repository.loadUserDatabase( userDTO );
+        userDTO.setId( repositoryDAO.newUserID() );
+        repositoryDAO.loadUserDatabase( userDTO );
         StatusDTO statusDTO = new StatusDTO();
         statusDTO.setCode(200);
         statusDTO.setMessage("User "+userDTO.getUser()+" (name "+userDTO.getName()+") has been loaded successfully with id "+userDTO.getId());
@@ -188,14 +188,15 @@ public class SearchEngineImpl implements SearchEngine {
     @Override
     //Obtengo todos los usuarios.
     public List<UserDTO> allUsers() {
-        return repository.getAllUsers();
+        return repositoryDAO.getAllUsers();
     }
 
 
     @Override
     //Obtengo los usuarios filtrados. En este caso arme el filtro con un request GET de formato userDTO y no con un get de formato map (como en la parte de filtrado de artículos).
     public List<UserDTO> filterUsers(UserDTO userDTO) {
-        if (repository.filterUsers( userDTO ).isEmpty()) throw new BadFilterException("There is no user that matches the filters");
-        return repository.filterUsers( userDTO );
+        if (repositoryDAO.filterUsers( userDTO ).isEmpty()) throw new BadFilterException("There is no user that matches the filters");
+        return repositoryDAO.filterUsers( userDTO );
     }
+
 }

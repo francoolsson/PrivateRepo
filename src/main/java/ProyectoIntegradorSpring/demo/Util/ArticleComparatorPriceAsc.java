@@ -8,6 +8,7 @@ public class ArticleComparatorPriceAsc implements Comparator<ArticlesDTO> {
 
     @Override
     public int compare(ArticlesDTO o1, ArticlesDTO o2) {
-        return o1.getPrice()-o2.getPrice();
+        if ((o1.getPrice()-o2.getPrice()==0)) return o1.getName().compareToIgnoreCase(o2.getName());
+        else return o1.getPrice()-o2.getPrice();
     }
 }

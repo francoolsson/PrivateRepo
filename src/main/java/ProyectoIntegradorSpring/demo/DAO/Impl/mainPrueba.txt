@@ -1,6 +1,6 @@
 package ProyectoIntegradorSpring.demo.DAO.Impl;
 
-import ProyectoIntegradorSpring.demo.DAO.Repository;
+import ProyectoIntegradorSpring.demo.DAO.RepositoryDAO;
 import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

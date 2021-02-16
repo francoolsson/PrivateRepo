@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 
 
-public interface Repository {
+public interface RepositoryDAO {
 
     Boolean isAttribute (Map<String,String> filters);
     List<ArticlesDTO> returnFilterProducts(Map<String,String> filters);
@@ -22,4 +22,6 @@ public interface Repository {
     List<UserDTO> getAllUsers();
     Boolean isUser (String user);
     List<UserDTO> filterUsers(UserDTO userDTO);
+
+
 }

@@ -1,0 +1,122 @@
+[
+  {
+    "id": 10,
+    "name": "Medias",
+    "category": "Indumentaria",
+    "brand": "Mistral",
+    "price": 500,
+    "quantity": 8,
+    "freeShipping": 0,
+    "prestige": "*"
+  },
+  {
+    "id": 7,
+    "name": "Smartwatch",
+    "category": "Celulares",
+    "brand": "Noga",
+    "price": 1900,
+    "quantity": 20,
+    "freeShipping": 0,
+    "prestige": "**"
+  },
+  {
+    "id": 5,
+    "name": "Camiseta",
+    "category": "Deportes",
+    "brand": "Topper",
+    "price": 2300,
+    "quantity": 2,
+    "freeShipping": 0,
+    "prestige": "***"
+  },
+  {
+    "id": 8,
+    "name": "Remera",
+    "category": "Indumentaria",
+    "brand": "Taverniti",
+    "price": 2300,
+    "quantity": 2,
+    "freeShipping": 0,
+    "prestige": "***"
+  },
+  {
+    "id": 9,
+    "name": "Chomba",
+    "category": "Indumentaria",
+    "brand": "Taverniti",
+    "price": 2400,
+    "quantity": 6,
+    "freeShipping": 0,
+    "prestige": "***"
+  },
+  {
+    "id": 11,
+    "name": "Short",
+    "category": "Indumentaria",
+    "brand": "Lacoste",
+    "price": 3900,
+    "quantity": 9,
+    "freeShipping": 1,
+    "prestige": "***"
+  },
+  {
+    "id": 2,
+    "name": "Soldadora",
+    "category": "Herramientas",
+    "brand": "Black & Decker",
+    "price": 7215,
+    "quantity": 10,
+    "freeShipping": 1,
+    "prestige": "***"
+  },
+  {
+    "id": 0,
+    "name": "Desmalezadora",
+    "category": "Herramientas",
+    "brand": "Makita",
+    "price": 9600,
+    "quantity": 5,
+    "freeShipping": 1,
+    "prestige": "****"
+  },
+  {
+    "id": 1,
+    "name": "Taladro",
+    "category": "Herramientas",
+    "brand": "Black & Decker",
+    "price": 12500,
+    "quantity": 7,
+    "freeShipping": 1,
+    "prestige": "****"
+  },
+  {
+    "id": 4,
+    "name": "Zapatillas Deportivas",
+    "category": "Deportes",
+    "brand": "Adidas",
+    "price": 13650,
+    "quantity": 6,
+    "freeShipping": 1,
+    "prestige": "*****"
+  },
+  {
+    "id": 3,
+    "name": "Zapatillas Deportivas",
+    "category": "Deportes",
+    "brand": "Nike",
+    "price": 14000,
+    "quantity": 4,
+    "freeShipping": 1,
+    "prestige": "*****"
+  },
+  {
+    "id": 6,
+    "name": "Redmi Note 9",
+    "category": "Celulares",
+    "brand": "Xiaomi",
+    "price": 40000,
+    "quantity": 15,
+    "freeShipping": 1,
+    "prestige": "****"
+  }
+]
