@@ -2,8 +2,10 @@ package ProyectoIntegradorSpring.demo.Controllers;
 
 
 import ProyectoIntegradorSpring.demo.DTO.*;
+import ProyectoIntegradorSpring.demo.Model.ArticleModel;
 import ProyectoIntegradorSpring.demo.Services.SearchEngine;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -68,5 +70,7 @@ public class RestController {
     public List<UserDTO> getFilterUsers (UserDTO userDTO){
         return searchEngine.filterUsers(userDTO);
     }
+
+
 
 }

@@ -23,5 +23,11 @@ public interface RepositoryDAO {
     Boolean isUser (String user);
     List<UserDTO> filterUsers(UserDTO userDTO);
 
+    List<ArticlesDTO> getArticlesDatabase();
+
+
+    //Para testeo teóricamente
+    void deleteArticlesDatabase();
+    void loadTestDatabase(String path);
 
 }

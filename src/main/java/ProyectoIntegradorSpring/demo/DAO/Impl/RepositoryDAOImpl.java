@@ -6,10 +6,7 @@ import ProyectoIntegradorSpring.demo.DTO.ArticlesDTO;
 import ProyectoIntegradorSpring.demo.DTO.ReceiptDTO;
 import ProyectoIntegradorSpring.demo.DTO.ShoppingCartDTO;
 import ProyectoIntegradorSpring.demo.DTO.UserDTO;
-import ProyectoIntegradorSpring.demo.Model.ArticlesFilterPredicates;
-import ProyectoIntegradorSpring.demo.Model.ArticleModel;
-import ProyectoIntegradorSpring.demo.Model.UserFilterFactory;
-import ProyectoIntegradorSpring.demo.Model.UserFilterFactoryImpl;
+import ProyectoIntegradorSpring.demo.Model.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -65,10 +62,10 @@ public class RepositoryDAOImpl implements RepositoryDAO {
     //Creo la base de datos con los valores del JSON.
     private Map<Integer, ArticlesDTO> loadArticleDatabase(){
         HashMap<Integer, ArticlesDTO> database = new HashMap<>();
-        ObjectMapper mapper = new ObjectMapper();
         List<ArticleModel> productsList= new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            productsList = mapper.readValue( new File( "src/main/java/ProyectoIntegradorSpring/demo/Model/database.json" ),
+            productsList = objectMapper.readValue( new File( "src/main/java/ProyectoIntegradorSpring/demo/Model/database.json" ),
                     new TypeReference<List<ArticleModel>>(){});
         } catch(Exception e){
             e.printStackTrace();
@@ -106,7 +103,7 @@ public class RepositoryDAOImpl implements RepositoryDAO {
     @Override
     public List<ArticlesDTO> returnFilterProducts(Map<String, String> filters) {
         //Filtrado de artículos. Armo un filtro de predicados enviandole el mapa de filtros que viene del servicio.
-        return articlesDatabase.values().stream().filter( u -> ArticlesFilterPredicates.articleFilter(u,filters)).collect( Collectors.toList());
+        return getArticlesDatabase().stream().filter( u -> ArticlesFilterPredicates.articleFilter(u,filters)).collect( Collectors.toList());
     }
 
     @Override
@@ -163,5 +160,40 @@ public class RepositoryDAOImpl implements RepositoryDAO {
     //sino con un userDTO.
     public List<UserDTO> filterUsers(UserDTO userDTO) {
         return usersDatabase.values().stream().filter(userFilterFactory.getUsersFilters( userDTO )).collect( Collectors.toList());
+    }
+
+
+
+
+
+    //Para testeo teòricamente
+    @Override
+    public void deleteArticlesDatabase() {
+        articlesDatabase.clear();
+    }
+
+    @Override
+    public void loadTestDatabase(String path) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<ArticleModel> productsList= new ArrayList<>();
+        try {
+            productsList = objectMapper.readValue( new File( path ),
+                    new TypeReference<List<ArticleModel>>(){});
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        Integer i=articlesDatabase.size();
+        for (ArticleModel articleModel : productsList){
+            ArticlesDTO articlesDTO = new ArticlesDTO();
+            articlesDTO=objectMapper.convertValue( articleModel,ArticlesDTO.class );
+            articlesDTO.setId(i);
+            articlesDatabase.put( articlesDTO.getId(), articlesDTO );
+            i++;
+        }
+    }
+
+    @Override
+    public List<ArticlesDTO> getArticlesDatabase() {
+        return articlesDatabase.values().stream().collect( Collectors.toList());
     }
 }

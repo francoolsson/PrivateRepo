@@ -74,4 +74,6 @@ public class ArticlesDTO {
     public void setPrestige(String prestige) {
         this.prestige = prestige;
     }
+
+
 }
